@@ -7,12 +7,20 @@
 @tailwind utilities;
 
 /* hide trading rewards on mobile */
-.oui-portfolio-page .oui-box.oui-flex.oui-flex-nowrap > div:nth-child(2).oui-box.oui-flex.oui-justify-start.oui-flex-nowrap.oui-relative {
+.oui-portfolio-page
+  .oui-box.oui-flex.oui-flex-nowrap
+  > div:nth-child(
+    2
+  ).oui-box.oui-flex.oui-justify-start.oui-flex-nowrap.oui-relative {
   display: none;
 }
 
 .api-credential-login-button {
   height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: min(300px, 34vw);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
   padding: 0 12px;
@@ -25,6 +33,42 @@
 
 .api-credential-login-button:hover {
   background: rgba(255, 255, 255, 0.12);
+}
+
+.api-credential-login-button-active {
+  border-color: rgba(41, 223, 169, 0.28);
+  background: rgba(41, 223, 169, 0.1);
+}
+
+.api-credential-login-button-active:hover {
+  background: rgba(41, 223, 169, 0.14);
+}
+
+.api-credential-login-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgb(41, 223, 169);
+  box-shadow: 0 0 8px rgba(41, 223, 169, 0.5);
+}
+
+.api-credential-login-button-main,
+.api-credential-login-button-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.api-credential-login-button-main {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.94);
+  font-weight: 650;
+}
+
+.api-credential-login-button-detail {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
 }
 
 .api-credential-login-overlay {
@@ -81,6 +125,49 @@
   padding: 12px 20px 20px;
 }
 
+.api-credential-login-session {
+  display: grid;
+  gap: 14px;
+  padding: 12px 20px 20px;
+}
+
+.api-credential-login-details {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.api-credential-login-details div {
+  display: grid;
+  grid-template-columns: minmax(110px, 38%) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.api-credential-login-details div + div {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.api-credential-login-details dt {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+.api-credential-login-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .api-credential-login-form label {
   display: grid;
   gap: 7px;
@@ -106,22 +193,74 @@
   border-color: rgba(41, 223, 169, 0.72);
 }
 
+.api-credential-login-status-message {
+  margin: 0;
+  font-size: 13px;
+}
+
+.api-credential-login-status-idle {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.api-credential-login-status-checking {
+  color: rgba(255, 230, 139, 0.92);
+}
+
+.api-credential-login-status-ok {
+  color: rgba(78, 233, 179, 0.92);
+}
+
+.api-credential-login-status-error {
+  color: rgb(245, 97, 139);
+}
+
 .api-credential-login-error {
   margin: 0;
   color: rgb(245, 97, 139);
   font-size: 13px;
 }
 
-.api-credential-login-submit {
+.api-credential-login-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.api-credential-login-submit,
+.api-credential-login-disconnect {
   height: 38px;
   border: 0;
   border-radius: 6px;
-  background: rgb(41, 223, 169);
-  color: rgb(12, 16, 18);
   font-weight: 650;
 }
 
-.api-credential-login-submit:disabled {
+.api-credential-login-submit {
+  background: rgb(41, 223, 169);
+  color: rgb(12, 16, 18);
+}
+
+.api-credential-login-disconnect {
+  border: 1px solid rgba(245, 97, 139, 0.34);
+  background: rgba(245, 97, 139, 0.1);
+  color: rgb(255, 132, 166);
+}
+
+.api-credential-login-disconnect:hover {
+  background: rgba(245, 97, 139, 0.16);
+}
+
+.api-credential-login-submit:disabled,
+.api-credential-login-disconnect:disabled {
   cursor: not-allowed;
   opacity: 0.62;
+}
+
+@media (max-width: 768px) {
+  .api-credential-login-button {
+    max-width: 172px;
+  }
+
+  .api-credential-login-button-detail {
+    display: none;
+  }
 }
