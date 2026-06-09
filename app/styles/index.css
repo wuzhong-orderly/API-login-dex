@@ -15,6 +15,15 @@
   display: none;
 }
 
+/* Hide deposit withdraw related buttons */
+[data-testid="oui-testid-nav-bar-address-btn"],
+[data-testid="oui-testid-assetView-deposit-button"],
+[data-testid="oui-testid-assetView-withdraw-button"],
+[data-testid="oui-testid-portfolio-assets-deposit-btn"],
+[data-testid="oui-testid-portfolio-assets-withdraw-btn"] {
+  display: none !important;
+}
+
 .api-credential-login-button {
   height: 32px;
   display: inline-flex;
