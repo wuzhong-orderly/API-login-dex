@@ -17,7 +17,7 @@ export default function MarketsIndex() {
         comparisonProps={{
           exchangesIconSrc:
             getRuntimeConfigBoolean("VITE_HAS_SECONDARY_LOGO")
-              ? "/logo-secondary.webp"
+              ? "/logo-secondary.svg"
               : undefined,
           exchangesName:
             getRuntimeConfig("VITE_ORDERLY_BROKER_NAME"),
