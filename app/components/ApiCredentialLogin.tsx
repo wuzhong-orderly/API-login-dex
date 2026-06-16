@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { BaseOrderlyKeyPair } from "@orderly.network/core";
-import { useAccount, useApiKeyManager } from "@orderly.network/hooks";
+import { useAccount } from "@orderly.network/hooks";
 import { AccountStatusEnum } from "@orderly.network/types";
 import { getRuntimeConfig } from "@/utils/runtime-config";
 
@@ -14,6 +14,11 @@ type ApiKeyStatus = {
 type AccountDetails = {
   address: string;
   brokerId: string;
+};
+
+type ApiKeyDetails = {
+  expiration?: number;
+  keyStatus?: string;
 };
 
 const stripEd25519Prefix = (value: string) => {
@@ -109,18 +114,43 @@ const fetchAccountDetails = async (
   }
 };
 
+const fetchApiKeyDetails = async (
+  accountId: string,
+  orderlyKey: string,
+  apiBaseUrl?: string,
+): Promise<ApiKeyDetails | undefined> => {
+  try {
+    const url = new URL(
+      "/v1/get_orderly_key",
+      apiBaseUrl || getFallbackOrderlyApiBaseUrl(),
+    );
+    url.searchParams.set("account_id", accountId);
+    url.searchParams.set("orderly_key", orderlyKey);
+
+    const response = await fetch(url.toString());
+    const payload = await response.json();
+
+    if (!response.ok || !payload?.success || !payload?.data) {
+      return undefined;
+    }
+
+    return {
+      expiration: payload.data.expiration,
+      keyStatus: payload.data.key_status,
+    };
+  } catch {
+    return undefined;
+  }
+};
+
 export function ApiCredentialLogin() {
   const { account, state } = useAccount();
-  const [apiKeys] = useApiKeyManager({
-    keyInfo: {
-      key_status: "ACTIVE",
-    },
-  });
   const [open, setOpen] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [currentApiKey, setCurrentApiKey] = useState("");
+  const [apiKeyDetails, setApiKeyDetails] = useState<ApiKeyDetails>();
   const [accountDetails, setAccountDetails] = useState<AccountDetails>();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -140,15 +170,7 @@ export function ApiCredentialLogin() {
     getRuntimeConfig("VITE_ORDERLY_BROKER_NAME") ||
     "Broker";
 
-  const currentApiKeyInfo = useMemo(() => {
-    if (!currentApiKey) {
-      return undefined;
-    }
-
-    return apiKeys?.find((item) => item.orderly_key === currentApiKey);
-  }, [apiKeys, currentApiKey]);
-
-  const expiryLabel = formatExpirationDate(currentApiKeyInfo?.expiration);
+  const expiryLabel = formatExpirationDate(apiKeyDetails?.expiration);
   const addressLabel = formatAddress(accountDetails?.address);
   const brokerNameLabel =
     getRuntimeConfig("VITE_ORDERLY_BROKER_NAME") || "Unavailable";
@@ -162,6 +184,7 @@ export function ApiCredentialLogin() {
   useEffect(() => {
     if (!isApiLoggedIn) {
       setCurrentApiKey("");
+      setApiKeyDetails(undefined);
       setAccountDetails(undefined);
       return;
     }
@@ -180,13 +203,19 @@ export function ApiCredentialLogin() {
         return;
       }
 
-      const details = await fetchAccountDetails(
-        state.accountId,
-        account.apiBaseUrl,
-      );
+      const [details, keyDetails] = await Promise.all([
+        fetchAccountDetails(state.accountId, account.apiBaseUrl),
+        publicKey
+          ? fetchApiKeyDetails(state.accountId, publicKey, account.apiBaseUrl)
+          : Promise.resolve(undefined),
+      ]);
 
       if (mounted && details) {
         setAccountDetails(details);
+      }
+
+      if (mounted && keyDetails) {
+        setApiKeyDetails(keyDetails);
       }
     };
 
@@ -268,6 +297,11 @@ export function ApiCredentialLogin() {
         trimmedAccountId,
         account.apiBaseUrl,
       );
+      const keyDetails = await fetchApiKeyDetails(
+        trimmedAccountId,
+        normalizedApiKey,
+        account.apiBaseUrl,
+      );
 
       setStatus({
         level: "ok",
@@ -275,6 +309,7 @@ export function ApiCredentialLogin() {
       });
 
       setCurrentApiKey(normalizedApiKey);
+      setApiKeyDetails(keyDetails);
       setAccountDetails(details);
       setSecretKey("");
       setOpen(false);
@@ -300,6 +335,7 @@ export function ApiCredentialLogin() {
       setApiKey("");
       setSecretKey("");
       setCurrentApiKey("");
+      setApiKeyDetails(undefined);
       setAccountDetails(undefined);
       resetStatus();
       setOpen(false);
