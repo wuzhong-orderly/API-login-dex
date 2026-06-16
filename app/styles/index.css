@@ -23,6 +23,10 @@
   display: none !important;
 }
 
+.sp-account-not-authenticated .oui-trading-assetsView-container {
+  display: none !important;
+}
+
 .api-credential-login-button {
   height: 32px;
   display: inline-flex;

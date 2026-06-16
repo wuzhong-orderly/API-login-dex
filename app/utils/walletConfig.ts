@@ -112,14 +112,15 @@ export const getOnboardEvmWallets = () => {
 
 export const getEvmInitialConfig = () => {
   const wallets = getOnboardEvmWallets();
+  const appName = getRuntimeConfig("VITE_ORDERLY_BROKER_NAME") || "Orderly App";
 
   return wallets.length > 0
     ? {
         options: {
           wallets,
           appMetadata: {
-            name: getRuntimeConfig("VITE_ORDERLY_BROKER_NAME"),
-            description: getRuntimeConfig("VITE_ORDERLY_BROKER_NAME"),
+            name: appName,
+            description: appName,
           },
         },
       }

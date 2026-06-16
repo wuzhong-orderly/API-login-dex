@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { API } from "@orderly.network/types";
+import { useAccount } from "@orderly.network/hooks";
+import { API, AccountStatusEnum } from "@orderly.network/types";
 import { TradingPage } from "@orderly.network/trading";
 import { updateSymbol } from "@/utils/storage";
 import { formatSymbol, generatePageTitle } from "@/utils/utils";
@@ -12,8 +13,13 @@ export default function PerpSymbol() {
   const params = useParams();
   const [symbol, setSymbol] = useState(params.symbol!);
   const config = useOrderlyConfig();
+  const { state } = useAccount();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const isAuthenticated =
+    state.status === AccountStatusEnum.SignedIn ||
+    state.status === AccountStatusEnum.EnableTrading ||
+    state.status === AccountStatusEnum.EnableTradingWithoutConnected;
 
   useEffect(() => {
     updateSymbol(symbol);
@@ -36,7 +42,13 @@ export default function PerpSymbol() {
   const pageTitle = generatePageTitle(formatSymbol(params.symbol!));
 
   return (
-    <div className="h-full">
+    <div
+      className={`h-full ${
+        isAuthenticated
+          ? "sp-account-authenticated"
+          : "sp-account-not-authenticated"
+      }`}
+    >
       {renderSEOTags(pageMeta, pageTitle)}
       <TradingPage
         symbol={symbol}

@@ -371,7 +371,6 @@ export const useOrderlyConfig = () => {
             {components.subAccount}
             {components.chainMenu}
             <ApiCredentialLogin />
-            {components.walletConnect}
           </Flex>
         </Flex>
       );
