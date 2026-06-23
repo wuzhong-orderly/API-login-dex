@@ -1,4 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { BaseOrderlyKeyPair } from "@orderly.network/core";
 import { useAccount } from "@orderly.network/hooks";
 import { AccountStatusEnum } from "@orderly.network/types";
@@ -19,6 +26,67 @@ type AccountDetails = {
 type ApiKeyDetails = {
   expiration?: number;
   keyStatus?: string;
+};
+
+type StoredApiCredential = {
+  accountId: string;
+  apiKey: string;
+  secretKey: string;
+};
+
+const API_CREDENTIAL_STORAGE_KEY = "sp_api_credential_login";
+
+const readStoredApiCredential = (): StoredApiCredential | undefined => {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  try {
+    const rawValue = localStorage.getItem(API_CREDENTIAL_STORAGE_KEY);
+    if (!rawValue) {
+      return undefined;
+    }
+
+    const parsed = JSON.parse(rawValue) as Partial<StoredApiCredential>;
+    if (!parsed.accountId || !parsed.apiKey || !parsed.secretKey) {
+      return undefined;
+    }
+
+    return {
+      accountId: parsed.accountId,
+      apiKey: parsed.apiKey,
+      secretKey: parsed.secretKey,
+    };
+  } catch {
+    return undefined;
+  }
+};
+
+const writeStoredApiCredential = (credential: StoredApiCredential) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      API_CREDENTIAL_STORAGE_KEY,
+      JSON.stringify(credential),
+    );
+  } catch {
+    // Ignore storage failures so API login can still proceed.
+  }
+};
+
+const removeStoredApiCredential = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(API_CREDENTIAL_STORAGE_KEY);
+  } catch {
+    // Ignore storage failures so disconnect can still proceed.
+  }
 };
 
 const stripEd25519Prefix = (value: string) => {
@@ -145,6 +213,7 @@ const fetchApiKeyDetails = async (
 
 export function ApiCredentialLogin() {
   const { account, state } = useAccount();
+  const autoLoginAttemptedRef = useRef(false);
   const [open, setOpen] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -239,23 +308,28 @@ export function ApiCredentialLogin() {
     });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
+  const loginWithCredential = useCallback(
+    async (
+      credential: StoredApiCredential,
+      options: { persist: boolean; silent?: boolean } = { persist: true },
+    ) => {
+      const trimmedAccountId = credential.accountId.trim();
+      const normalizedSecretKey = normalizeOrderlySecret(credential.secretKey);
+      const normalizedApiKey = normalizeOrderlyKey(credential.apiKey);
 
-    try {
-      const trimmedAccountId = accountId.trim();
-      const normalizedSecretKey = normalizeOrderlySecret(secretKey);
-      const normalizedApiKey = normalizeOrderlyKey(apiKey);
-
-      if (!trimmedAccountId || !apiKey.trim() || !normalizedSecretKey) {
+      if (
+        !trimmedAccountId ||
+        !credential.apiKey.trim() ||
+        !normalizedSecretKey
+      ) {
         throw new Error("Please fill Account ID, API Key, and Secret Key.");
       }
 
       setStatus({
         level: "checking",
-        message: "Validating API key and secret key pair...",
+        message: options.silent
+          ? "Restoring saved API session..."
+          : "Validating API key and secret key pair...",
       });
 
       const orderlyKeyPair = new BaseOrderlyKeyPair(normalizedSecretKey);
@@ -308,11 +382,66 @@ export function ApiCredentialLogin() {
         message: "Active API key verified and ready for trading.",
       });
 
+      if (options.persist) {
+        writeStoredApiCredential({
+          accountId: trimmedAccountId,
+          apiKey: normalizedApiKey,
+          secretKey: normalizedSecretKey,
+        });
+      }
+
+      setAccountId(trimmedAccountId);
+      setApiKey(normalizedApiKey);
       setCurrentApiKey(normalizedApiKey);
       setApiKeyDetails(keyDetails);
       setAccountDetails(details);
       setSecretKey("");
       setOpen(false);
+    },
+    [account],
+  );
+
+  useEffect(() => {
+    if (autoLoginAttemptedRef.current || isApiLoggedIn) {
+      return;
+    }
+
+    const storedCredential = readStoredApiCredential();
+    if (!storedCredential) {
+      return;
+    }
+
+    autoLoginAttemptedRef.current = true;
+    setLoading(true);
+    setError("");
+
+    loginWithCredential(storedCredential, { persist: true, silent: true })
+      .catch(() => {
+        removeStoredApiCredential();
+        setStatus({
+          level: "error",
+          message: "Saved API session expired or is no longer valid.",
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [isApiLoggedIn, loginWithCredential]);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await loginWithCredential(
+        {
+          accountId,
+          apiKey,
+          secretKey,
+        },
+        { persist: true },
+      );
     } catch (reason) {
       setStatus({
         level: "error",
@@ -331,6 +460,7 @@ export function ApiCredentialLogin() {
 
     try {
       await account.disconnect();
+      removeStoredApiCredential();
       setAccountId("");
       setApiKey("");
       setSecretKey("");
