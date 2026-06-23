@@ -8,11 +8,18 @@ import { getRuntimeConfigBoolean } from '@/utils/runtime-config';
 interface WalletConnectorProps {
   children: ReactNode;
   networkId: NetworkId;
+  apiCredentialOnly?: boolean;
 }
 
-const WalletConnector = ({ children, networkId }: WalletConnectorProps) => {
-  const disableEVMWallets = getRuntimeConfigBoolean('VITE_DISABLE_EVM_WALLETS');
-  const disableSolanaWallets = getRuntimeConfigBoolean('VITE_DISABLE_SOLANA_WALLETS');
+const WalletConnector = ({
+  children,
+  networkId,
+  apiCredentialOnly = false,
+}: WalletConnectorProps) => {
+  const disableEVMWallets =
+    apiCredentialOnly || getRuntimeConfigBoolean('VITE_DISABLE_EVM_WALLETS');
+  const disableSolanaWallets =
+    apiCredentialOnly || getRuntimeConfigBoolean('VITE_DISABLE_SOLANA_WALLETS');
 
   const evmInitial = disableEVMWallets ? undefined : getEvmInitialConfig();
 

@@ -94,6 +94,8 @@ const OrderlyProvider = (props: { children: ReactNode }) => {
 
   const privyAppId = getRuntimeConfig("VITE_PRIVY_APP_ID");
   const usePrivy = !!privyAppId;
+  const apiCredentialOnly =
+    getRuntimeConfig("VITE_API_CREDENTIAL_ONLY") !== "false";
 
   const parseChainIds = (
     envVar: string | undefined
@@ -212,7 +214,11 @@ const OrderlyProvider = (props: { children: ReactNode }) => {
     </OrderlyAppProvider>
   );
 
-  const walletConnector = usePrivy ? (
+  const walletConnector = apiCredentialOnly ? (
+    <WalletConnector networkId={networkId} apiCredentialOnly>
+      {appProvider}
+    </WalletConnector>
+  ) : usePrivy ? (
     <PrivyConnector networkId={networkId}>{appProvider}</PrivyConnector>
   ) : (
     <WalletConnector networkId={networkId}>{appProvider}</WalletConnector>

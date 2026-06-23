@@ -13,6 +13,7 @@ window.__RUNTIME_CONFIG__ = {
   "VITE_ENABLE_ABSTRACT_WALLET": "false",
   "VITE_DISABLE_EVM_WALLETS": "false",
   "VITE_DISABLE_SOLANA_WALLETS": "false",
+  "VITE_API_CREDENTIAL_ONLY": "true",
   "VITE_WALLETCONNECT_PROJECT_ID": "",
   "VITE_APP_NAME": "1111",
   "VITE_APP_DESCRIPTION": "Built for traders who demand full custody of their assets without sacrificing execution speed, liquidity depth, or a professional trading interface.",
