@@ -25,8 +25,9 @@ export default function PortfolioLayout() {
       }}
       bottomNavProps={config.scaffold.bottomNavProps}
     >
-      <Outlet />
+      <div className="oui-portfolio-page">
+        <Outlet />
+      </div>
     </PortfolioLayoutWidget>
   );
 }
-

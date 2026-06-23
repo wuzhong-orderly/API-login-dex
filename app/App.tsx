@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import OrderlyProvider from "@/components/orderlyProvider";
+import { HideConnectWalletButtons } from "@/components/HideConnectWalletButtons";
 import { HttpsRequiredWarning } from "@/components/HttpsRequiredWarning";
 import { withBasePath } from "./utils/base-path";
 import { getSEOConfig, getUserLanguage } from "./utils/seo";
@@ -18,10 +19,10 @@ export default function App() {
         <link rel="icon" type="image/webp" href={withBasePath("/favicon.webp")} />
       </Helmet>
       <HttpsRequiredWarning />
+      <HideConnectWalletButtons />
       <OrderlyProvider>
         <Outlet />
       </OrderlyProvider>
     </>
   );
 }
-
