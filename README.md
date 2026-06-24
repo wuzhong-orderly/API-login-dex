@@ -1,101 +1,103 @@
-# Orderly Broker UI Template
+# SP DEX
 
-This template provides a quick way to set up a customized trading UI for Orderly Network brokers, built with Remix and deployable on Vercel.
+A customized Orderly Network DEX built with Vite, React, and the Orderly SDK.
 
-🔗 [Live Demo](https://broker-template-seven.vercel.app/)
+This app is configured for an API-credential-first trading flow. Wallet connect UI is hidden, API credential login is available from the top navigation, and saved API credentials can be restored from local browser storage on the next visit.
 
-## Quick Start
+## Features
 
-1. **Fork the Repository**
-   
-   Fork this repository to your GitHub account to create your broker's UI.
+- Orderly trading page and portfolio modules
+- API credential login using an existing Orderly Account ID, API key, and API secret
+- Optional local persistence for API credential sessions
+- API-only mode via `VITE_API_CREDENTIAL_ONLY`
+- Custom theme overrides in `app/styles/theme.css`
+- Runtime configuration through `public/config.js`
 
-2. **Clone Your Fork**
+## Requirements
 
-```sh
-git clone https://github.com/YOUR_USERNAME/broker-template.git
-cd broker-template
-```
+- Node.js 20 or newer
+- Yarn
 
-3. **Install Dependencies**
+## Development
+
+Install dependencies:
 
 ```sh
 yarn install
 ```
 
-## Configuration Steps
-
-### 1. Broker Configuration
-
-Edit the `.env` file to set up your broker details:
-
-```env
-# Broker settings
-VITE_ORDERLY_BROKER_ID=your_broker_id
-VITE_ORDERLY_BROKER_NAME=Your Broker Name
-VITE_ORDERLY_NETWORK_ID=mainnet  # or testnet for testing
-
-# Meta tags
-VITE_APP_NAME=Your App Name
-VITE_APP_DESCRIPTION=Your app description for SEO
-
-# Navigation menu configuration (optional)
-VITE_ENABLED_MENUS=Trading,Portfolio,Markets,Leaderboard
-VITE_CUSTOM_MENUS=Documentation,https://docs.yoursite.com;Blog,https://blog.yoursite.com;Support,https://support.yoursite.com
-```
-
-### 2. Theme Customization
-
-1. Visit the [Orderly Storybook Trading Page](https://storybook.orderly.network/?path=/story/package-trading-tradingpage--page)
-2. Customize your preferred theme using the controls
-3. Export the generated CSS
-4. Replace the contents of `app/styles/theme.css` with your exported CSS
-
-### 3. UI Configuration
-
-Edit `app/utils/config.tsx` to customize your UI:
-
-- **Footer Links**: Update `footerProps` with your social media links
-- **Logos**: Replace the main and secondary logos in the `appIcons` section
-- **PnL Sharing**: Customize the PnL poster backgrounds and colors in `sharePnLConfig`
-
-Required assets:
-- Place your logos in the `public` directory:
-  - Main logo: `public/orderly-logo.svg`
-  - Secondary logo: `public/orderly-logo-secondary.svg`
-  - Favicon: `public/favicon.webp`
-- PnL sharing backgrounds: `public/pnl/poster_bg_[1-4].png`
-
-## Development
-
-Run the development server:
+Start the local dev server:
 
 ```sh
 yarn dev
 ```
 
-## Deployment
+By default the app runs at:
 
-1. Build the application:
+```txt
+http://localhost:5173
+```
+
+## Build
+
+Create a production build:
 
 ```sh
 yarn build
 ```
 
-2. Deploy to Vercel:
-   - Create an account on [Vercel](https://vercel.com) if you haven't already
-   - Install Vercel CLI: `yarn global add vercel`
-   - Run `vercel` in your project directory and follow the prompts
-   - For subsequent deployments, use `vercel --prod` to deploy to production
+Create the SPA build:
 
-For custom domain setup:
-   - Go to your project settings in Vercel dashboard
-   - Navigate to the "Domains" section
-   - Add and configure your custom domain
+```sh
+yarn build:spa
+```
 
-## Additional Resources
+## Configuration
 
-- [Orderly JS SDK Documentation](https://github.com/OrderlyNetwork/js-sdk)
-- [Orderly Network Documentation](https://orderly.network/docs/sdks)
-- [Storybook Theme Editor](https://storybook.orderly.network/?path=/story/package-trading-tradingpage--page)
+Runtime settings live in `public/config.js`. Important values include:
 
+```js
+window.__RUNTIME_CONFIG__ = {
+  VITE_ORDERLY_BROKER_ID: "demo",
+  VITE_ORDERLY_BROKER_NAME: "1111",
+  VITE_API_CREDENTIAL_ONLY: "true",
+};
+```
+
+Set `VITE_API_CREDENTIAL_ONLY` to `"false"` if you want to restore normal wallet connector behavior.
+
+## API Credential Login
+
+The app supports logging in with:
+
+- Orderly Account ID
+- Orderly API key
+- Orderly API secret
+
+After a successful login, credentials are stored in local browser storage under:
+
+```txt
+sp_api_credential_login
+```
+
+On the next visit, the app attempts to restore the API session automatically. Clicking `Disconnect` clears the saved local credentials.
+
+## Disclaimer
+
+This software is provided for development and integration purposes only. It is not financial advice, investment advice, or a recommendation to trade.
+
+Trading perpetuals and digital assets involves substantial risk, including the possible loss of funds. You are responsible for understanding the risks, permissions, and account access granted by any API credential used with this app.
+
+API secrets stored in browser `localStorage` can be accessed by anyone with access to the browser profile or by malicious scripts running on the same origin. Use this persistence only in trusted environments. For production user-facing deployments, consider requiring explicit user consent, limiting API key permissions, using short-lived keys where possible, and avoiding storage of trading secrets in browser-accessible storage.
+
+Wallet-free API credential login can support trading actions that are authorized by an existing Orderly API key. It does not replace wallet signatures for wallet-owned or chain-level actions such as deposits, withdrawals, account registration, or API key management.
+
+Use this app at your own risk.
+
+## Useful Paths
+
+- `app/components/ApiCredentialLogin.tsx` - API credential login and local restore
+- `app/components/orderlyProvider/index.tsx` - Orderly provider and API-only mode
+- `app/pages/portfolio/Layout.tsx` - Portfolio layout customization
+- `app/styles/theme.css` - Theme and UI overrides
+- `public/config.js` - Runtime configuration
